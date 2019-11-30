@@ -1,4 +1,3 @@
-const cheerio = require('cheerio');
 const Nightmare = require('nightmare');
 const nightmare = Nightmare({show: true, pollInterval: 50, height: 1200, width: 1440});
 
@@ -6,6 +5,7 @@ const siteUrl = "https://www.airbnb.com/s/Sunnyvale--CA--United-States/homes?adu
 const individualRoomClickableDOM = '._ttw0d';
 const nextPageDOM = '._r4n1gzb';
 const totalNumberOfPagesDOM = '._1bdke5s';
+const scrapeUpperLimit = 50;
 // fetch the page
 const getPageListings = async () => {
   return nightmare
@@ -19,8 +19,8 @@ const getPageListings = async () => {
     .wait(individualRoomClickableDOM, totalNumberOfPagesDOM, nextPageDOM)
     .evaluate((totalNumberOfPagesDOM) => {
       var pageArray = document.querySelectorAll(totalNumberOfPagesDOM);
-      // var totalNumberOfPages = Number(pageArray[pageArray.length - 1].innerText);
-      var totalNumberOfPages = 1;
+      var totalNumberOfPages = Number(pageArray[pageArray.length - 1].innerText);
+      // var totalNumberOfPages = 1;
       return totalNumberOfPages;
     }, totalNumberOfPagesDOM)
     .then((result) => {
@@ -56,12 +56,10 @@ const getPageListings = async () => {
 }
 
 const gallerySelector = '#FMP-target';
-const titleSelector = '._18hrqvin';
-const typeSelector = '._tqmy57';
 
 
 const getListingDetails = async (listingArray) => {
-  var listingArray = listingArray.slice(0, 10);
+  var listingArray = listingArray.slice(0, scrapeUpperLimit);
   var listingDetailArray = [];
   return listingArray.reduce((accumulator, singleListingURL) => {
     return accumulator.then((results) => {
@@ -73,37 +71,37 @@ const getListingDetails = async (listingArray) => {
           path: '/query',
           secure: true
         })
-        .wait(1500)
-        .evaluate((gallerySelector, titleSelector, typeSelector) => {
+        .wait(500)
+        .evaluate((gallerySelector) => {
           var selector = document.querySelector(gallerySelector).className;
           var picNodes = document.querySelectorAll(`.${selector}`);
           var picNodesArray = Array.from(picNodes);
           var interiorPicLinks = picNodesArray.map((picNode) => {
             return picNode.src;
           });
-          var title = document.querySelector(titleSelector).innerText;
+          var title = document.querySelector('h1').innerText;
           var summaryDiv = document.querySelector('#summary');
           var type = summaryDiv === null ? document.querySelectorAll('span')[30].parentElement.innerText : summaryDiv.nextElementSibling.innerText.split('\n').slice(0, 7);
           if (type.constructor === Array && type[0] >= 'a' && type[0] <= 'z') {
-            type = type.slice(0, 4).join('-');
+            type = type.slice(0, 3).join('-');
           } else if (type.constructor === Array) {
             type = type.slice(1, 5).join('-');
           }
           var priceDOM = document.querySelector('._doc79r');
           var reviewDOM = document.querySelector('._1iv05u9z');
           var price = priceDOM === null ? document.querySelector('._83jges').innerText.split(' ')[0] : document.querySelector('._doc79r').innerText;
-          var review = reviewDOM === null ? document.querySelector('._goo6eo').innerText : document.querySelector('._1iv05u9z').innerText;
+          var review = reviewDOM === null ? document.querySelector('._goo6eo').innerText.replace(/(\r\n|\n|\r)/gm, "") : document.querySelector('._1iv05u9z').innerText.replace(/(\r\n|\n|\r)/gm, "");
           return {interiorPicLinks, title, type, price, review};
-        }, gallerySelector, titleSelector, typeSelector)
+        }, gallerySelector)
         .then((results) => {
           listingDetailArray.push(results);
           return listingDetailArray
         })
     })
   }, Promise.resolve([]))
-  .then((result) => {
-    debugger;
-  })
+  .then((results) => {
+    return results;
+  });
 }
 
 // return the organized data
