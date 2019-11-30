@@ -83,7 +83,12 @@ const getListingDetails = async (listingArray) => {
           });
           var title = document.querySelector(titleSelector).innerText;
           var summaryDiv = document.querySelector('#summary');
-          var type = summaryDiv === null ? document.querySelectorAll('span')[30].parentElement.innerText : summaryDiv.nextElementSibling.innerText.split('\n').slice(0, 4).join('-');
+          var type = summaryDiv === null ? document.querySelectorAll('span')[30].parentElement.innerText : summaryDiv.nextElementSibling.innerText.split('\n').slice(0, 7);
+          if (type.constructor === Array && type[0] >= 'a' && type[0] <= 'z') {
+            type = type.slice(0, 4).join('-');
+          } else if (type.constructor === Array) {
+            type = type.slice(1, 5).join('-');
+          }
           var priceDOM = document.querySelector('._doc79r');
           var reviewDOM = document.querySelector('._1iv05u9z');
           var price = priceDOM === null ? document.querySelector('._83jges').innerText.split(' ')[0] : document.querySelector('._doc79r').innerText;
