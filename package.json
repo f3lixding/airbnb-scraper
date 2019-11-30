@@ -19,6 +19,7 @@
     "request": "^2.88.0",
     "request-promise": "^4.2.5",
     "require-promise": "^1.0.1",
-    "tough-cookie": "^3.0.1"
+    "tough-cookie": "^3.0.1",
+    "vo": "^4.0.2"
   }
 }
