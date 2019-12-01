@@ -39,7 +39,6 @@ router.get('/scrapeonlypagedetails', async (req, res, next) => {
       return pageDetails;
     })
     .then((data) => {
-      debugger;
       return fsAsync.writeFileAsync(path.resolve(__dirname, '../data/page-details.txt'), JSON.stringify(data))
     })
     .then((result) => {

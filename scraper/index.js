@@ -5,7 +5,7 @@ const siteUrl = "https://www.airbnb.com/s/Sunnyvale--CA--United-States/homes?adu
 const individualRoomClickableDOM = '._ttw0d';
 const nextPageDOM = '._r4n1gzb';
 const totalNumberOfPagesDOM = '._1bdke5s';
-const scrapeUpperLimit = 50;
+const scrapeUpperLimit = 100;
 // fetch the page
 const getPageListings = async () => {
   return nightmare
@@ -61,7 +61,7 @@ const gallerySelector = '#FMP-target';
 const getListingDetails = async (listingArray) => {
   var listingArray = listingArray.slice(0, scrapeUpperLimit);
   var listingDetailArray = [];
-  return listingArray.reduce((accumulator, singleListingURL) => {
+  return listingArray.reduce((accumulator, singleListingURL, index) => {
     return accumulator.then((results) => {
       return nightmare
         .goto(singleListingURL)
@@ -81,16 +81,26 @@ const getListingDetails = async (listingArray) => {
           });
           var title = document.querySelector('h1').innerText;
           var summaryDiv = document.querySelector('#summary');
-          var type = summaryDiv === null ? document.querySelectorAll('span')[30].parentElement.innerText : summaryDiv.nextElementSibling.innerText.split('\n').slice(0, 7);
-          if (type.constructor === Array && type[0] >= 'a' && type[0] <= 'z') {
-            type = type.slice(0, 3).join('-');
-          } else if (type.constructor === Array) {
-            type = type.slice(1, 5).join('-');
+          var backupDiv1 = document.querySelector('._n5lh69r');
+          var backupDiv2 = document.querySelector('._tqmy57');
+          var type = "";
+          if (summaryDiv !== null) {
+            type = summaryDiv.nextElementSibling.innerText.split('\n').join(' · ');
+          } else if (backupDiv1 !== null) {
+            type = backupDiv1.innerText.split('\n').join(' · ');
+          } else if (backupDiv2 !== null) {
+            type = backupDiv2.innerText.split('\n').join(' · ');
           }
-          var priceDOM = document.querySelector('._doc79r');
-          var reviewDOM = document.querySelector('._1iv05u9z');
-          var price = priceDOM === null ? document.querySelector('._83jges').innerText.split(' ')[0] : document.querySelector('._doc79r').innerText;
-          var review = reviewDOM === null ? document.querySelector('._goo6eo').innerText.replace(/(\r\n|\n|\r)/gm, "") : document.querySelector('._1iv05u9z').innerText.replace(/(\r\n|\n|\r)/gm, "");
+          // var type = summaryDiv === null ? document.querySelectorAll('span')[30].parentElement.innerText.replace(/(\r\n|\n|\r)/gm, "") : summaryDiv.nextElementSibling.innerText.split('\n').slice(0, 7);
+          // if (type.constructor === Array && type[0] >= 'a' && type[0] <= 'z') {
+          //   type = type.slice(0, 3).join('-');
+          // } else if (type.constructor === Array) {
+          //   type = type.slice(1, 5).join('-');
+          // }
+          var priceDOM = document.querySelector('._doc79r') === null ? document.querySelector('._83jges') : document.querySelector('._doc79r');
+          var reviewDOM = document.querySelector('._1iv05u9z') === null ? document.querySelector('._goo6eo') : document.querySelector('._1iv05u9z');
+          var price = priceDOM === null ? "" : priceDOM.innerText.split('\n')[0];
+          var review = reviewDOM === null ? "" : reviewDOM.innerText.replace(/(\r\n|\n|\r)/gm, "");
           return {interiorPicLinks, title, type, price, review};
         }, gallerySelector)
         .then((results) => {
