@@ -20,7 +20,7 @@ const getPageListings = async () => {
     .evaluate((totalNumberOfPagesDOM) => {
       var pageArray = document.querySelectorAll(totalNumberOfPagesDOM);
       var totalNumberOfPages = Number(pageArray[pageArray.length - 1].innerText);
-      // var totalNumberOfPages = 1;
+      // var totalNumberOfPages = 1;`
       return totalNumberOfPages;
     }, totalNumberOfPagesDOM)
     .then((result) => {
